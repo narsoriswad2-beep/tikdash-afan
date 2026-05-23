@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TikDash | Dashboard Afan</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300,400,600,700,800,900&display=swap');
+
+:root{
+  --bg:#0a0a0f; --card:#15151d; --text:#ffffffad; --muted:#8b8b9e;
+  --accent:#ff0050; --accent2:#b0a5a5; --sidebar:#111118;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Outfit',sans-serif}
+body{background:var(--bg);color:var(--text);overflow-x:hidden}
+
+.bg-animation{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;
+  background:linear-gradient(-45deg,#0a0a0f,#1a0a1f,#0a1a1f,#0a0a1f);
+  background-size:400% 400%;animation:gradientShift 15s ease infinite
+}
+@keyframes gradientShift{
+ 0%{background-position:0% 50%}
+ 50%{background-position:100% 50%}
+ 100%{background-position:0% 50%}
+}
+
+.wrapper{display:flex;min-height:100vh}
+
+.sidebar{
+  width:280px;background:rgba(17,17,24,0.8);backdrop-filter:blur(20px);
+  border-right:1px solid rgba(255,255,255,0.05);padding:30px 20px;
+  position:fixed;height:100vh;transition:0.4s;z-index:100;display:flex;flex-direction:column;
+  transform:translateX(-100%)
+}
+.sidebar.active{transform:translateX(0)}
+
+.logo{
+  font-size:2rem;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:40px;display:flex;align-items:center;gap:10px
+}
+
+.nav-link{
+  display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:14px;
+  color:var(--muted);text-decoration:none;transition:all 0.3s;margin-bottom:8px;cursor:pointer
+}
+.nav-link:hover,.nav-link.active{
+  background:rgba(255,0,80,0.1);color:var(--text);padding-left:22px
+}
+
+.admin-btn{
+  margin-top:auto;padding:14px;background:linear-gradient(135deg,rgba(255,0,80,0.1),rgba(0,242,234,0.1));
+  border:1px solid var(--accent);border-radius:14px;color:var(--accent);
+  cursor:pointer;font-weight:600;transition:0.3s;display:flex;align-items:center;gap:10px;justify-content:center
+}
+
+.main{margin-left:0;flex:1;transition:0.4s}
+
+.topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:20px 40px;background:rgba(17,17,24,0.6);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,0.05);position:sticky;top:0;z-index:50
+}
+
+.menu-btn{
+  background:none;border:none;color:var(--text);cursor:pointer;
+  width:30px;height:24px;position:relative;display:flex;flex-direction:column;justify-content:space-between
+}
+.menu-btn span{
+  display:block;width:100%;height:3px;background:var(--text);border-radius:3px;
+  transition:0.3s
+}
+.menu-btn.active span:nth-child(1){transform:rotate(45deg) translate(8px, 8px)}
+.menu-btn.active span:nth-child(2){opacity:0}
+.menu-btn.active span:nth-child(3){transform:rotate(-45deg) translate(8px, -8px)}
+
+.back-btn{
+  display:inline-flex;align-items:center;gap:8px;padding:10px 20px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;color:var(--text);cursor:pointer;margin-bottom:20px;transition:0.3s
+}
+
+.hero{
+  min-height:90vh;display:flex;align-items:center;justify-content:center;
+  padding:60px 40px;text-align:center
+}
+.hero-content{max-width:900px}
+
+.profile-img{
+  width:180px;height:180px;border-radius:50%;margin:0 auto 30px;
+  border:4px solid var(--accent);padding:4px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center
+}
+.profile-img img{width:80px;height:80px}
+
+.hero h1{
+  font-size:4rem;font-weight:900;margin-bottom:20px;
+  background:linear-gradient(135deg,#fff,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent
+}
+
+.content-wrapper{padding:40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-bottom:30px}
+.card{
+  background:rgba(21,21,29,0.8);backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.05);border-radius:20px;padding:30px
+}
+
+.section{display:none}
+.section.active{display:block}
+
+input,textarea{
+  width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);
+  background:rgba(0,0,0,0.3);color:var(--text);margin-bottom:12px;font-size:1rem
+}
+
+.badge-followed{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 12px;
+  background:rgba(0,242,234,0.1);border:1px solid var(--accent2);
+  border-radius:20px;font-size:0.85rem;color:var(--accent2);margin-bottom:15px
+}
+
+/* Modal Cara Lewati */
+.modal{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(#f900009b);backdrop-filter:blur(10px);
+  align-items:center;justify-content:center;z-index:1000;padding:20px
+}
+.modal.active{display:flex}
+.modal-content{
+  background:var(--card);padding:35px;border-radius:20px;max-width:500px;
+  border:2px solid var(--accent);max-height:90vh;overflow-y:auto
+}
+.modal-content h3{
+  margin-bottom:20px;display:flex;align-items:center;gap:10px
+}
+.modal-content ol{
+  color:var(--muted);padding-left:20px;line-height:1.9
+}
+.modal-content li{
+  margin-bottom:15px
+}
+.modal-content strong{
+  color:var(--text)
+}
+
+@media(min-width:901px){
+  .sidebar{transform:translateX(0)}
+  .main{margin-left:280px}
+  .menu-btn{display:none}
+</style>
+</head>
+<body>
+<div class="bg-animation"></div>
+
+<div class="wrapper">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <i data-lucide="zap"></i> TikDash
+    </div>
+    
+    <a class="nav-link active" onclick="showSection('home')">
+      <i data-lucide="home"></i> Home
+    </a>
+    <a class="nav-link" onclick="showSection('dashboard')">
+      <i data-lucide="bar-chart-3"></i> Dashboard
+    </a>
+    <a class="nav-link" onclick="showSection('programming')">
+      <i data-lucide="code"></i> Programming
+    </a>
+    <a class="nav-link" onclick="showSection('links')">
+      <i data-lucide="link"></i> My Links
+    </a>
+    <a class="nav-link" onclick="showSection('about')">
+      <i data-lucide="user"></i> About
+    </a>
+
+    <button class="admin-btn" onclick="toggleAdmin()">
+      <i data-lucide="shield"></i> <span id="adminText">Admin Mode</span>
+    </button>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+      <div style="color:var(--muted)">Creator Dashboard ✨</div>
+    </div>
+
+    <!-- HOME -->
+    <section class="section active" id="home">
+      <div class="hero">
+        <div class="hero-content">
+          <div class="profile-img">
+            <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/tiktok.svg" alt="TikTok Logo">
+          </div>
+          <h1>Selamat Datang di Web Afan</h1>
+          <p>Halo! Saya Afan, kreator konten yang suka berbagi tentang programming dan teknologi.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section class="section" id="dashboard">
+      <div class="content-wrapper">
+        <button class="back-btn" onclick="goBack()">
+          <i data-lucide="arrow-left"></i> Kembali
+        </button>
+        <h2>Analytics Dashboard</h2>
+        <div class="grid">
+          <div class="card">
+            <div style="color:var(--muted)">Total Views</div>
+            <div style="font-size:3rem;font-weight:800;margin:10px 0">128K</div>
+          </div>
+          <div class="card">
+            <div style="color:var(--muted)">Followers</div>
+            <div style="font-size:3rem;font-weight:800;margin:10px 0">24.8K</div>
+          </div>
+          <div class="card">
+            <div style="color:var(--muted)">Likes</div>
+            <div style="font-size:3rem;font-weight:800;margin:10px 0">89.3K</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROGRAMMING -->
+    <section class="section" id="programming">
+      <div class="content-wrapper">
+        <button class="back-btn" onclick="goBack()">
+          <i data-lucide="arrow-left"></i> Kembali
+        </button>
+        <h2>Programming Hub</h2>
+        <div class="grid">
+          <div class="card">
+            <i data-lucide="code" style="color:var(--accent);width:40px;height:40px;margin-bottom:15px"></i>
+            <h3>Web Development</h3>
+            <p style="color:var(--muted)">Tutorial HTML, CSS, JavaScript, dan framework modern.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LINKS -->
+    <section class="section" id="links">
+      <div class="content-wrapper">
+        <button class="back-btn" onclick="goBack()">
+          <i data-lucide="arrow-left"></i> Kembali
+        </button>
+        
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:15px">
+          <h2>My Links</h2>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button onclick="showCaraLewati()" style="padding:12px 20px;background:rgba(255,193,7,0.1);border:1px solid #ffc107;color:#ffc107;border-radius:12px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:8px">
+              <i data-lucide="help-circle"></i> Cara Lewati
+            </button>
+            <button onclick="showAddLink()" id="addLinkBtn" style="display:none;padding:12px 24px;background:linear-gradient(135deg,var(--accent),#ff4081);color:white;border-radius:12px;border:none;font-weight:700;cursor:pointer">
+              <i data-lucide="plus"></i> Tambah Link
+            </button>
+          </div>
+        </div>
+
+        <div id="followStatus"></div>
+        <div class="grid" id="linksGrid"></div>
+        
+        <div class="card" id="addLinkForm" style="display:none;margin-top:30px">
+          <h3>Tambah Link Baru</h3>
+          <input type="text" id="linkTitle" placeholder="Judul Link">
+          <input type="url" id="linkURL" placeholder="https://example.com">
+          <input type="text" id="linkIcon" placeholder="Icon: youtube, instagram, github, globe">
+          <div style="display:flex;gap:12px">
+            <button onclick="saveLink()" style="padding:12px 30px;background:linear-gradient(135deg,var(--accent),#ff4081);color:white;border-radius:12px;border:none;cursor:pointer">Simpan</button>
+            <button onclick="cancelAddLink()" style="padding:12px 30px;background:transparent;border:2px solid rgba(255,255,255,0.1);color:var(--text);border-radius:12px;cursor:pointer">Batal</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="section" id="about">
+      <div class="content-wrapper">
+        <button class="back-btn" onclick="goBack()">
+          <i data-lucide="arrow-left"></i> Kembali
+        </button>
+        <h2>About Me</h2>
+        <div class="card">
+          <p style="color:var(--muted);line-height:1.9;font-size:1.1rem">
+            Saya adalah kreator konten yang fokus pada programming dan teknologi.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Modal Cara Lewati -->
+<div class="modal" id="caraLewatiModal">
+  <div class="modal-content">
+    <h3><i data-lucide="help-circle" style="color:#ffc107"></i> Cara Melewati Follow Gate</h3>
+    <ol>
+      <li>
+        <strong>Klik tombol "Akses Link"</strong> di link yang mau kamu buka
+      </li>
+      <li>
+        <strong>Kamu akan diarahkan ke TikTok saya</strong> di tab baru
+      </li>
+      <li>
+        <strong>Follow akun TikTok saya</strong> di sana
+      </li>
+      <li>
+        <strong>Kembali ke web ini</strong> di tab sebelumnya
+      </li>
+      <li>
+        <strong>Klik tombol "Akses Link" lagi</strong> di link yang sama
+      </li>
+      <li>
+        <strong>Selesai!</strong> Sekarang link langsung kebuka tanpa ditanya lagi
+      </li>
+    </ol>
+    <p style="color:var(--muted);margin-top:20px;font-size:0.9rem">
+      Status "sudah follow" tersimpan di browser kamu, jadi cukup sekali aja follow.
+    </p>
+    <button onclick="closeCaraLewati()" style="margin-top:20px;width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer">
+      Mengerti
+    </button>
+  </div>
+</div>
+
+<script>
+lucide.createIcons();
+
+let isAdmin = false;
+let links = JSON.parse(localStorage.getItem('tiktok_links') || '[]');
+let historyStack = ['home'];
+let hasFollowed = localStorage.getItem('has_followed') === 'true';
+
+const TIKTOK_URL = 'https://vm.tiktok.com/ZS9FvtsSUt5M5-9OdR6/';
+
+updateFollowStatus();
+
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  
+  const activeLink = document.querySelector(`.nav-link[onclick="showSection('${id}')"]`);
+  if(activeLink) activeLink.classList.add('active');
+  
+  if(id !== historyStack[historyStack.length-1]){
+    historyStack.push(id);
+  }
+  
+  if(window.innerWidth<901){
+    document.getElementById('sidebar').classList.remove('active');
+    document.getElementById('menuBtn').classList.remove('active');
+  }
+}
+
+function goBack(){
+  if(historyStack.length > 1){
+    historyStack.pop();
+    showSection(historyStack[historyStack.length-1]);
+  }
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('active');
+  document.getElementById('menuBtn').classList.toggle('active');
+}
+
+function toggleAdmin(){
+  if(!isAdmin){
+    const pass = prompt("Masukkan password admin:");
+    if(pass === "admin123"){
+      isAdmin = true;
+      document.getElementById('addLinkBtn').style.display='inline-flex';
+      document.getElementById('adminText').textContent = 'Exit Admin';
+      alert('Admin Mode Aktif!');
+    }else if(pass){
+      alert('Password salah!');
+    }
+  }else{
+    isAdmin = false;
+    document.getElementById('addLinkBtn').style.display='none';
+    document.getElementById('addLinkForm').style.display='none';
+    document.getElementById('adminText').textContent = 'Admin Mode';
+  }
+  renderLinks();
+}
+
+function showCaraLewati(){
+  document.getElementById('caraLewatiModal').classList.add('active');
+}
+
+function closeCaraLewati(){
+  document.getElementById('caraLewatiModal').classList.remove('active');
+}
+
+function updateFollowStatus(){
+  const statusDiv = document.getElementById('followStatus');
+  if(hasFollowed){
+    statusDiv.innerHTML = `<div class="badge-followed">
+      <i data-lucide="check-circle"></i> Status: Sudah Follow - Akses Terbuka
+    </div>`;
+  }else{
+    statusDiv.innerHTML = `<div style="color:var(--muted);margin-bottom:15px;display:flex;align-items:center;gap:8px">
+      <i data-lucide="lock"></i> Status: Belum Follow - Klik tombol "Cara Lewati" untuk lihat caranya
+    </div>`;
+  }
+  lucide.createIcons();
+}
+
+function renderLinks(){
+  const grid = document.getElementById('linksGrid');
+  if(links.length === 0){
+    grid.innerHTML = '<p style="color:var(--muted);text-align:center">Belum ada link. Masuk Admin Mode untuk tambah link.</p>';
+    return;
+  }
+  
+  grid.innerHTML = links.map((link, index) => `
+    <div class="card" style="text-align:center">
+      <i data-lucide="${link.icon || 'globe'}" style="width:48px;height:48px;margin-bottom:15px;color:var(--accent)"></i>
+      <h4>${link.title}</h4>
+      <button onclick="handleLinkClick('${link.url}')" 
+              style="margin-top:15px;padding:12px 30px;background:linear-gradient(135deg,var(--accent),#ff4081);
+              color:white;border-radius:12px;border:none;font-weight:700;cursor:pointer;width:100%">
+        Akses Link
+      </button>
+      ${isAdmin ? `<button onclick="deleteLink(${index})" style="margin-top:10px;background:#d32f2f;border:none;padding:8px 16px;border-radius:8px;color:white;cursor:pointer;width:100%">Hapus</button>` : ''}
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+
+function handleLinkClick(url){
+  if(hasFollowed){
+    window.open(url, '_blank');
+  }else{
+    alert('Kamu akan diarahkan ke TikTok dulu. Setelah follow, kembali ke sini dan klik link lagi.');
+    window.open(TIKTOK_URL, '_blank');
+    
+    setTimeout(() => {
+      hasFollowed = true;
+      localStorage.setItem('has_followed', 'true');
+      updateFollowStatus();
+    }, 3000);
+  }
+}
+
+function showAddLink(){document.getElementById('addLinkForm').style.display='block';}
+function cancelAddLink(){
+  document.getElementById('addLinkForm').style.display='none';
+  document.getElementById('linkTitle').value='';
+  document.getElementById('linkURL').value='';
+  document.getElementById('linkIcon').value='';
+}
+
+function saveLink(){
+  const title = document.getElementById('linkTitle').value;
+  const url = document.getElementById('linkURL').value;
+  const icon = document.getElementById('linkIcon').value || 'globe';
+  
+  if(!title || !url){alert('Isi judul dan URL!');return;}
+  
+  links.push({title, url, icon});
+  localStorage.setItem('tiktok_links', JSON.stringify(links));
+  renderLinks();
+  cancelAddLink();
+}
+
+function deleteLink(index){
+  if(confirm('Hapus link ini?')){
+    links.splice(index, 1);
+    localStorage.setItem('tiktok_links', JSON.stringify(links));
+    renderLinks();
+  }
+}
+
+renderLinks();
+</script>
+</body>
+</html>
